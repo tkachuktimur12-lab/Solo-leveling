@@ -7,7 +7,6 @@ from .handlers import register_handlers
 
 def build_app():
     init_db()
-    print(f"Bot token: {TOKEN}")
     app = ApplicationBuilder().token(TOKEN).build()
     register_handlers(app)
     return app

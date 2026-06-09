@@ -17,7 +17,6 @@ def _load_dotenv():
         key = key.strip()
         value = value.strip().strip("'\"")
 
-        print(f"Setting environment variable: {key}={value}")
         if key:
             os.environ[key] = value
 
