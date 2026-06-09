@@ -1,0 +1,55 @@
+:root {
+  --game-gold: #FFD700;
+  --game-danger: #FF4444;
+  --game-epic: #B388FF;
+  --game-bg: #0a0e17;
+  --game-card-bg: #111827;
+  --game-card-border: rgba(79, 195, 247, 0.15);
+  --game-primary: #4FC3F7;
+  --rarity-common: #9E9E9E;
+  --rarity-rare: #4FC3F7;
+  --rarity-epic: #B388FF;
+  --rarity-legendary: #FF9800;
+  --rarity-mythic: #FF1744;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--game-bg);
+  color: #C1C2C5;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 12px;
+}
+
+.game-card {
+  background: var(--game-card-bg);
+  border: 1px solid var(--game-card-border);
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(79, 195, 247, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.game-card:hover {
+  box-shadow: 0 0 20px rgba(79, 195, 247, 0.12);
+}
+
+.glow-btn {
+  transition: all 0.2s ease;
+}
+
+.glow-btn:hover {
+  box-shadow: 0 0 20px rgba(79, 195, 247, 0.3);
+  transform: translateY(-1px);
+}
