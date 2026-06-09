@@ -11,7 +11,8 @@ Telegram bot concept inspired by Solo Leveling progression systems.
 - `bot/app.py`: app wiring and handler registration
 
 ## Run
-1. Set your bot token:
-   - PowerShell: `$env:TELEGRAM_BOT_TOKEN="your_token_here"`
+1. Configure your token in `.env`:
+   - Copy `.env.example` to `.env`
+   - Set `TELEGRAM_BOT_TOKEN=your_token_here`
 2. Start:
    - `python main.py`
