@@ -1,4 +1,4 @@
 .env
  bot/__pycache__/
- hunters.db
  .idea/
+/hunters.db

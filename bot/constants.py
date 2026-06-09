@@ -15,9 +15,9 @@ QUESTS = [
 ]
 
 HIDDEN_QUESTS = [
-    ("Do 50 pushups", 80, "rare"),
-    ("Do 100 pushups", 140, "epic"),
-    ("Do 200 pushups", 300, "legendary"),
+    ("Do 50 pushups", 800, "rare"),
+    ("Do 100 pushups", 1400, "epic"),
+    ("Do 200 pushups", 3000, "legendary"),
 ]
 
 AWAKENING_CLASSES = {
