@@ -7,7 +7,13 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
 from .constants import DUNGEONS, HIDDEN_QUESTS, QUESTS, SHOP_ITEMS
 from .db import conn, cursor, get_equipped_stats, get_user
-from .game_logic import apply_stat_bonuses, generate_item, get_rank, loot_chance, safe_json
+from .game_logic import (
+    apply_stat_bonuses,
+    generate_item,
+    get_rank,
+    loot_chance,
+    safe_json,
+)
 
 
 def _class_keyboard():
@@ -162,7 +168,6 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("⚔Daily", callback_data="daily")],
         [InlineKeyboardButton("📊Stats", callback_data="stats")],
-        [InlineKeyboardButton("📊Precise Stats", callback_data="statsprecise")],
         [InlineKeyboardButton("🎲Roll", callback_data="roll")],
         [InlineKeyboardButton("🎲 Dungeon Roll", callback_data="dungeon_roll")],
         [InlineKeyboardButton("🏰 Dungeons", callback_data="dungeons")],
@@ -255,7 +260,9 @@ async def shop(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton(f"{item} - 💰{price}", callback_data=f"buy_{item}")]
         for item, price in SHOP_ITEMS
     ]
-    await update.message.reply_text("🛒 SHOP 🛒", reply_markup=InlineKeyboardMarkup(keyboard))
+    await update.message.reply_text(
+        "🛒 SHOP 🛒", reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
 
 async def inventory(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -370,7 +377,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await q.edit_message_text("❌ Item not found")
             return
 
-        cursor.execute("INSERT OR IGNORE INTO equipment (user_id) VALUES (?)", (user_id,))
+        cursor.execute(
+            "INSERT OR IGNORE INTO equipment (user_id) VALUES (?)", (user_id,)
+        )
         if item["slot"] == "weapon":
             cursor.execute(
                 "UPDATE equipment SET weapon_id=? WHERE user_id=?", (item_id, user_id)
@@ -749,7 +758,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 (xp, rolls, user_id),
             )
         else:
-            await q.edit_message_text("🎲 Hidden Roll Used\n\n❌ No hidden quest appeared.")
+            await q.edit_message_text(
+                "🎲 Hidden Roll Used\n\n❌ No hidden quest appeared."
+            )
             cursor.execute(
                 "UPDATE users SET hidden_rolls=? WHERE user_id=?",
                 (rolls, user_id),
@@ -792,7 +803,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             SET dungeon_active=?, dungeon_progress=0, dungeon_end=?
             WHERE user_id=?
             """,
-            (json.dumps({"rank": gate_rank, "enemies": enemies}), end_time.isoformat(), user_id),
+            (
+                json.dumps({"rank": gate_rank, "enemies": enemies}),
+                end_time.isoformat(),
+                user_id,
+            ),
         )
         conn.commit()
 
@@ -808,27 +823,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if action == "stats":
-        await q.edit_message_text(
-            f"📊 HUNTER STATUS 📊\n\n"
-            f"⚔ Level: {level}\n"
-            f"🏆 Rank: {get_rank(level)}\n"
-            f"✨ XP: {xp}\n"
-            f"🔥 Streak: {streak}\n\n"
-            f"🎲 Hidden Rolls: {rolls}\n"
-            f"🎲 Dungeon Rolls: {dungeon_rolls}",
-            reply_markup=InlineKeyboardMarkup(
-                [
-                    [
-                        InlineKeyboardButton(
-                            "🎲 Dungeon Roll", callback_data="dungeon_roll"
-                        )
-                    ]
-                ]
-            ),
-        )
-        return
-
-    if action == "statsprecise":
         await q.edit_message_text(
             f"📊 PRECISE HUNTER DATA 📊\n\n"
             f"⚔ Level: {level}\n"
@@ -846,7 +840,16 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚡ Awakened: {user['awakened']}\n"
             f"🔥 Job Changed: {user['job']}\n\n"
             f"🛡 Class 1: {user['class1']}\n"
-            f"⚔ Class 2: {user['class2']}"
+            f"⚔ Class 2: {user['class2']}",
+            reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            "🎲 Dungeon Roll", callback_data="dungeon_roll"
+                        )
+                    ]
+                ]
+            ),
         )
         return
 
@@ -885,7 +888,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ]
             )
 
-        keyboard.append([InlineKeyboardButton("🛡 Equipped Gear", callback_data="equipment")])
+        keyboard.append(
+            [InlineKeyboardButton("🛡 Equipped Gear", callback_data="equipment")]
+        )
         await q.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
         return
 
@@ -921,7 +926,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for item_name, price in SHOP_ITEMS:
             text += f"{item_name} — 💰 {price} Gold\n"
             keyboard.append(
-                [InlineKeyboardButton(f"Buy {item_name}", callback_data=f"buy_{item_name}")]
+                [
+                    InlineKeyboardButton(
+                        f"Buy {item_name}", callback_data=f"buy_{item_name}"
+                    )
+                ]
             )
         await q.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
         return
@@ -954,7 +963,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         conn.commit()
 
         await q.edit_message_text(
-            _render_spend_text(stat_points, base_str, base_int, base_agi, base_vit, base_sense),
+            _render_spend_text(
+                stat_points, base_str, base_int, base_agi, base_vit, base_sense
+            ),
             reply_markup=InlineKeyboardMarkup(_spend_keyboard()),
         )
         return

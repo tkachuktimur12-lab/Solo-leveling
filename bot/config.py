@@ -4,6 +4,7 @@ from pathlib import Path
 
 def _load_dotenv():
     env_path = Path(__file__).resolve().parent.parent / ".env"
+    print(f"Loading environment variables from: {env_path}")
     if not env_path.exists():
         return
 
@@ -16,15 +17,13 @@ def _load_dotenv():
         key = key.strip()
         value = value.strip().strip("'\"")
 
+        print(f"Setting environment variable: {key}={value}")
         if key:
-            os.environ.setdefault(key, value)
+            os.environ[key] = value
 
 
 _load_dotenv()
-
-
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-
 if not TOKEN:
     raise RuntimeError(
         "Missing bot token. Set the TELEGRAM_BOT_TOKEN environment variable."
