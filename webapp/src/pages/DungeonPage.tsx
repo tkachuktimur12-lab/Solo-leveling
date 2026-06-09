@@ -1,28 +1,38 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Button, Text, Card, Group, Loader, Center, Badge } from '@mantine/core';
+import { Stack, Button, Text, Card, Group, Badge } from '@mantine/core';
 import { QuestItem } from '../components/QuestItem';
 import { apiPost } from '../api';
 import { GAME_COLORS } from '../theme';
 
-interface Enemy {
-  name: string;
-  xp: number;
-}
+// Backend enemy shape: { name, task }
+interface Enemy { name: string; task: string; }
 
-interface Boss {
-  name: string;
-  task: string;
-}
-
-interface DungeonData {
+// POST /enter/{rank} response
+interface EnterResponse {
   rank: string;
   enemies: Enemy[];
-  completed: boolean[];
-  boss: Boss;
-  boss_defeated: boolean;
   time_limit: number;
-  rewards?: { xp: number; gold: number; loot?: string };
+}
+
+// POST /task/{index} response
+interface TaskResponse {
+  dungeon_progress: number;
+  total_enemies: number;
+  boss_available: boolean;
+}
+
+// POST /boss response
+interface BossResponse {
+  boss: { name: string; task: string };
+  time_left: number;
+}
+
+// POST /boss/defeat response
+interface DefeatResponse {
+  xp_reward: number;
+  gold_reward: number;
+  loot?: { item_name: string; rarity: string } | null;
 }
 
 const RANK_OPTS = [
@@ -33,11 +43,17 @@ const RANK_OPTS = [
 
 export function DungeonPage() {
   const navigate = useNavigate();
-  const [dungeon, setDungeon] = useState<DungeonData | null>(null);
   const [phase, setPhase] = useState<'select' | 'tasks' | 'boss' | 'victory'>('select');
   const [acting, setActing] = useState(false);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Dungeon state
+  const [rank, setRank] = useState('');
+  const [enemies, setEnemies] = useState<Enemy[]>([]);
+  const [progress, setProgress] = useState(0);
+  const [boss, setBoss] = useState<{ name: string; task: string } | null>(null);
+  const [rewards, setRewards] = useState<DefeatResponse | null>(null);
 
   const startTimer = useCallback((seconds: number) => {
     setTimer(seconds);
@@ -55,11 +71,15 @@ export function DungeonPage() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const enterDungeon = async (rank: string) => {
+  const enterDungeon = async (r: string) => {
     setActing(true);
     try {
-      const data = await apiPost<DungeonData>(`/api/dungeons/enter/${rank}`);
-      setDungeon(data);
+      const data = await apiPost<EnterResponse>(`/api/dungeons/enter/${r}`);
+      setRank(data.rank);
+      setEnemies(data.enemies);
+      setProgress(0);
+      setBoss(null);
+      setRewards(null);
       setPhase('tasks');
       startTimer(data.time_limit);
     } catch (e) { console.error(e); }
@@ -69,18 +89,15 @@ export function DungeonPage() {
   const completeTask = async (index: number) => {
     setActing(true);
     try {
-      const data = await apiPost<DungeonData>(`/api/dungeons/task/${index}`);
-      setDungeon(data);
-      const allDone = data.completed.every(Boolean);
-      if (allDone) setPhase('boss');
-    } catch (e) { console.error(e); }
-    finally { setActing(false); }
-  };
-
-  const enterBoss = async () => {
-    setActing(true);
-    try {
-      await apiPost('/api/dungeons/boss');
+      const data = await apiPost<TaskResponse>(`/api/dungeons/task/${index}`);
+      setProgress(data.dungeon_progress);
+      if (data.boss_available) {
+        // Auto-enter boss room
+        const bossData = await apiPost<BossResponse>('/api/dungeons/boss');
+        setBoss(bossData.boss);
+        setPhase('boss');
+        startTimer(bossData.time_left);
+      }
     } catch (e) { console.error(e); }
     finally { setActing(false); }
   };
@@ -88,8 +105,8 @@ export function DungeonPage() {
   const defeatBoss = async () => {
     setActing(true);
     try {
-      const data = await apiPost<DungeonData>('/api/dungeons/boss/defeat');
-      setDungeon(data);
+      const data = await apiPost<DefeatResponse>('/api/dungeons/boss/defeat');
+      setRewards(data);
       setPhase('victory');
       if (timerRef.current) clearInterval(timerRef.current);
     } catch (e) { console.error(e); }
@@ -132,89 +149,71 @@ export function DungeonPage() {
         </Stack>
       )}
 
-      {(phase === 'tasks' || phase === 'boss') && dungeon && (
+      {(phase === 'tasks' || phase === 'boss') && (
         <>
           <Group justify="space-between">
             <Badge size="lg" variant="filled" color={timer < 30 ? 'red' : 'blue'}>
               ⏱ {formatTime(timer)}
             </Badge>
             <Badge size="lg" variant="light" color="gray">
-              {dungeon.rank}-Rank
+              {rank}-Rank
             </Badge>
           </Group>
 
           {phase === 'tasks' && (
             <Stack gap="xs">
               <Text fw={600} size="sm" c="dimmed">Defeat the enemies:</Text>
-              {dungeon.enemies.map((enemy, i) => {
-                const completed = dungeon.completed?.[i] ?? false;
-                const prevDone = i === 0 || (dungeon.completed?.[i - 1] ?? false);
-                return (
-                  <QuestItem
-                    key={i}
-                    name={enemy.name}
-                    xp={enemy.xp}
-                    completed={completed}
-                    disabled={!prevDone || acting}
-                    onComplete={() => completeTask(i)}
-                  />
-                );
-              })}
+              {enemies.map((enemy, i) => (
+                <QuestItem
+                  key={i}
+                  name={`${enemy.name} — ${enemy.task}`}
+                  xp={0}
+                  completed={i < progress}
+                  disabled={i !== progress || acting}
+                  onComplete={() => completeTask(i)}
+                />
+              ))}
             </Stack>
           )}
 
-          {phase === 'boss' && (
+          {phase === 'boss' && boss && (
             <Card p="lg" style={{ background: GAME_COLORS.cardBg, border: `2px solid ${GAME_COLORS.danger}`, textAlign: 'center' }}>
               <Text size="xl" fw={700} style={{ color: GAME_COLORS.danger, fontFamily: 'Orbitron, sans-serif' }}>
                 ⚠️ BOSS ROOM
               </Text>
-              <Text mt="sm" fw={600}>{dungeon.boss.name}</Text>
-              <Text size="sm" c="dimmed" mt={4}>{dungeon.boss.task}</Text>
-              <Group justify="center" mt="md" gap="sm">
-                <Button
-                  variant="outline"
-                  color="red"
-                  loading={acting}
-                  onClick={enterBoss}
-                >
-                  Enter Boss Room
-                </Button>
-                <Button
-                  variant="gradient"
-                  gradient={{ from: '#FF4444', to: '#D50000' }}
-                  loading={acting}
-                  onClick={defeatBoss}
-                >
-                  ⚔️ Defeat Boss
-                </Button>
-              </Group>
+              <Text mt="sm" fw={600}>{boss.name}</Text>
+              <Text size="sm" c="dimmed" mt={4}>Task: {boss.task}</Text>
+              <Button
+                mt="md"
+                fullWidth
+                variant="gradient"
+                gradient={{ from: '#FF4444', to: '#D50000' }}
+                loading={acting}
+                onClick={defeatBoss}
+              >
+                ⚔️ Defeat Boss
+              </Button>
             </Card>
           )}
         </>
       )}
 
-      {phase === 'victory' && dungeon?.rewards && (
+      {phase === 'victory' && rewards && (
         <Card p="lg" style={{ background: GAME_COLORS.cardBg, border: `2px solid ${GAME_COLORS.gold}`, textAlign: 'center' }}>
           <Text size="xl" fw={700} style={{ color: GAME_COLORS.gold, fontFamily: 'Orbitron, sans-serif' }}>
             🏆 VICTORY!
           </Text>
-          <Text mt="sm">+{dungeon.rewards.xp} XP</Text>
-          <Text style={{ color: GAME_COLORS.gold }}>+{dungeon.rewards.gold} Gold</Text>
-          {dungeon.rewards.loot && (
+          <Text mt="sm">+{rewards.xp_reward} XP</Text>
+          <Text style={{ color: GAME_COLORS.gold }}>+{rewards.gold_reward} Gold</Text>
+          {rewards.loot && (
             <Text mt="xs" style={{ color: GAME_COLORS.epicPurple }}>
-              🎁 Loot: {dungeon.rewards.loot}
+              🎁 Loot: {rewards.loot.rarity.toUpperCase()} {rewards.loot.item_name}
             </Text>
           )}
-          <Button mt="md" variant="light" color="electricBlue" onClick={() => setPhase('select')}>
+          <Button mt="md" variant="light" color="electricBlue" onClick={() => { setPhase('select'); setRewards(null); }}>
             Continue
           </Button>
         </Card>
-      )}
-
-      {phase === 'victory' && !dungeon?.rewards && (
-        <Center>
-          <Loader color="electricBlue" />
-        </Center>
       )}
     </Stack>
   );

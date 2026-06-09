@@ -3,10 +3,16 @@ import { retrieveRawInitData } from '@telegram-apps/sdk-react';
 function getAuthHeader(): string {
   try {
     const raw = retrieveRawInitData();
-    return raw ? `tma ${raw}` : '';
-  } catch {
-    return '';
-  }
+    if (raw) return `tma ${raw}`;
+  } catch { /* SDK not initialized */ }
+
+  // Fallback: read directly from Telegram WebApp object
+  try {
+    const initData = (window as any).Telegram?.WebApp?.initData;
+    if (initData) return `tma ${initData}`;
+  } catch { /* not in Telegram */ }
+
+  return '';
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {

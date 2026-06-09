@@ -5,25 +5,22 @@ import { QuestItem } from '../components/QuestItem';
 import { apiGet, apiPost } from '../api';
 import { GAME_COLORS } from '../theme';
 
-interface Quest {
-  name: string;
-  xp: number;
-}
+// Backend returns quests as [name, xp] tuples
+type RawQuest = [string, number];
 
 interface DailyState {
-  active: boolean;
-  quests: Quest[];
-  completed: boolean[];
-  all_done: boolean;
-  claimed: boolean;
-  cooldown?: boolean;
-  cooldown_remaining?: string;
+  active_quests: RawQuest[];
+  quest_progress: number;
+  cooldown_active: boolean;
+  cooldown_remaining: number; // seconds
+  streak: number;
 }
 
 interface ClaimResult {
   xp_gained: number;
   streak: number;
-  hidden_quest?: string;
+  level: number;
+  level_ups: number;
 }
 
 export function DailyPage() {
@@ -85,13 +82,15 @@ export function DailyPage() {
         ⚔️ Daily Quests
       </Text>
 
-      {daily?.cooldown && (
+      {daily?.cooldown_active && (
         <Alert color="yellow" variant="light">
-          Daily quests on cooldown. {daily.cooldown_remaining && `Resets in: ${daily.cooldown_remaining}`}
+          Daily quests on cooldown.{' '}
+          {daily.cooldown_remaining > 0 &&
+            `Resets in: ${Math.floor(daily.cooldown_remaining / 3600)}h ${Math.floor((daily.cooldown_remaining % 3600) / 60)}m`}
         </Alert>
       )}
 
-      {!daily?.active && !daily?.cooldown && (
+      {(!daily?.active_quests || daily.active_quests.length === 0) && !daily?.cooldown_active && (
         <Button
           size="lg"
           fullWidth
@@ -104,18 +103,18 @@ export function DailyPage() {
         </Button>
       )}
 
-      {daily?.active && daily.quests && (
+      {daily?.active_quests && daily.active_quests.length > 0 && (
         <Stack gap="xs">
-          {daily.quests.map((quest, i) => {
-            const completed = daily.completed?.[i] ?? false;
-            const prevDone = i === 0 || (daily.completed?.[i - 1] ?? false);
+          {daily.active_quests.map((quest, i) => {
+            const completed = i < (daily.quest_progress ?? 0);
+            const canDo = i === (daily.quest_progress ?? 0);
             return (
               <QuestItem
                 key={i}
-                name={quest.name}
-                xp={quest.xp}
+                name={quest[0]}
+                xp={quest[1]}
                 completed={completed}
-                disabled={!prevDone || acting}
+                disabled={!canDo || acting}
                 onComplete={() => completeTask(i)}
               />
             );
@@ -123,7 +122,7 @@ export function DailyPage() {
         </Stack>
       )}
 
-      {daily?.all_done && !daily?.claimed && (
+      {daily && daily.quest_progress >= 5 && !claimResult && (
         <Button
           size="lg"
           fullWidth
@@ -143,9 +142,9 @@ export function DailyPage() {
           </Text>
           <Text ta="center" mt="xs">+{claimResult.xp_gained} XP</Text>
           <Text ta="center" size="sm" c="dimmed">🔥 Streak: {claimResult.streak}</Text>
-          {claimResult.hidden_quest && (
-            <Text ta="center" size="sm" mt="xs" style={{ color: GAME_COLORS.epicPurple }}>
-              🎲 Hidden quest discovered: {claimResult.hidden_quest}
+          {claimResult.level_ups > 0 && (
+            <Text ta="center" size="sm" mt="xs" style={{ color: GAME_COLORS.primary }}>
+              ⬆️ Level Up! Now level {claimResult.level}
             </Text>
           )}
         </Card>

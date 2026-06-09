@@ -5,10 +5,13 @@ import '@mantine/core/styles.css';
 import './index.css';
 import App from './App';
 
-if (import.meta.env.DEV) {
-  try {
+// Check if we're inside Telegram
+const isTelegram = !!(window as any).Telegram?.WebApp?.initData;
+
+try {
+  if (isTelegram) {
     init();
-  } catch {
+  } else if (import.meta.env.DEV) {
     mockTelegramEnv({
       launchParams: {
         tgWebAppVersion: '7.0',
@@ -36,10 +39,19 @@ if (import.meta.env.DEV) {
       },
     });
     init();
+  } else {
+    init();
   }
-} else {
-  init();
+} catch (e) {
+  console.error('Telegram SDK init failed:', e);
 }
+
+// Expand Mini App to full height
+try {
+  const tg = (window as any).Telegram?.WebApp;
+  tg?.expand();
+  tg?.ready();
+} catch { /* ignore outside Telegram */ }
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
