@@ -3,37 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { Stack, Card, Text, Group, Badge, Button, Loader, Center, Divider } from '@mantine/core';
 import { HunterCard } from '../components/HunterCard';
 import { StatBar } from '../components/StatBar';
-import { apiGet } from '../api';
+import { api, unwrap } from '../api';
+import type { UserStats } from '../api/types';
 import { GAME_COLORS } from '../theme';
-
-interface FullStats {
-  name: string;
-  level: number;
-  rank: string;
-  xp: number;
-  xp_needed: number;
-  str: number;
-  int: number;
-  agi: number;
-  vit: number;
-  sense: number;
-  stat_points: number;
-  streak: number;
-  hidden_rolls: number;
-  dungeon_rolls: number;
-  gold: number;
-  awakening_class: string | null;
-  job_class: string | null;
-  equipped_bonuses?: Record<string, number>;
-}
 
 export function StatsPage() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<FullStats | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiGet<FullStats>('/api/user/stats')
+    unwrap(api.GET('/api/user/stats'))
       .then(setStats)
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -43,7 +23,7 @@ export function StatsPage() {
     return <Center h="80vh"><Loader color="electricBlue" /></Center>;
   }
 
-  const bonuses = stats.equipped_bonuses ?? {};
+  const bonuses = stats.equipped_bonuses;
 
   return (
     <Stack gap="md">

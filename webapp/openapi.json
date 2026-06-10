@@ -1,0 +1,1656 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Solo Leveling API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/user/stats": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Stats",
+        "operationId": "stats_api_user_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/spend": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Spend",
+        "operationId": "spend_api_user_spend_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpendResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/daily": {
+      "get": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Daily State",
+        "operationId": "daily_state_api_daily_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyState"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/daily/start": {
+      "post": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Start Daily",
+        "operationId": "start_daily_api_daily_start_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyStartResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/daily/task/{index}": {
+      "post": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Complete Task",
+        "operationId": "complete_task_api_daily_task__index__post",
+        "parameters": [
+          {
+            "name": "index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Index"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskProgress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/daily/claim": {
+      "post": {
+        "tags": [
+          "daily"
+        ],
+        "summary": "Claim Daily",
+        "operationId": "claim_daily_api_daily_claim_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dungeons": {
+      "get": {
+        "tags": [
+          "dungeons"
+        ],
+        "summary": "List Dungeons",
+        "operationId": "list_dungeons_api_dungeons_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dungeons/enter/{rank}": {
+      "post": {
+        "tags": [
+          "dungeons"
+        ],
+        "summary": "Enter Dungeon",
+        "operationId": "enter_dungeon_api_dungeons_enter__rank__post",
+        "parameters": [
+          {
+            "name": "rank",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Rank"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnterDungeon"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dungeons/task/{index}": {
+      "post": {
+        "tags": [
+          "dungeons"
+        ],
+        "summary": "Dungeon Task",
+        "operationId": "dungeon_task_api_dungeons_task__index__post",
+        "parameters": [
+          {
+            "name": "index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Index"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonTask"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dungeons/boss": {
+      "post": {
+        "tags": [
+          "dungeons"
+        ],
+        "summary": "Enter Boss",
+        "operationId": "enter_boss_api_dungeons_boss_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BossRoom"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dungeons/boss/defeat": {
+      "post": {
+        "tags": [
+          "dungeons"
+        ],
+        "summary": "Defeat Boss",
+        "operationId": "defeat_boss_api_dungeons_boss_defeat_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BossDefeat"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roll/hidden": {
+      "post": {
+        "tags": [
+          "roll"
+        ],
+        "summary": "Hidden Roll",
+        "operationId": "hidden_roll_api_roll_hidden_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiddenRollResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roll/hidden/claim/{index}": {
+      "post": {
+        "tags": [
+          "roll"
+        ],
+        "summary": "Claim Hidden",
+        "operationId": "claim_hidden_api_roll_hidden_claim__index__post",
+        "parameters": [
+          {
+            "name": "index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Index"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiddenClaimResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roll/dungeon": {
+      "post": {
+        "tags": [
+          "roll"
+        ],
+        "summary": "Dungeon Roll",
+        "operationId": "dungeon_roll_api_roll_dungeon_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DungeonRollResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shop": {
+      "get": {
+        "tags": [
+          "shop"
+        ],
+        "summary": "List Shop",
+        "operationId": "list_shop_api_shop_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shop/buy/{item_name}": {
+      "post": {
+        "tags": [
+          "shop"
+        ],
+        "summary": "Buy Item",
+        "operationId": "buy_item_api_shop_buy__item_name__post",
+        "parameters": [
+          {
+            "name": "item_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuyResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory": {
+      "get": {
+        "tags": [
+          "inventory"
+        ],
+        "summary": "List Inventory",
+        "operationId": "list_inventory_api_inventory_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory/equipment": {
+      "get": {
+        "tags": [
+          "inventory"
+        ],
+        "summary": "Get Equipment",
+        "operationId": "get_equipment_api_inventory_equipment_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Equipment"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory/equip/{item_id}": {
+      "post": {
+        "tags": [
+          "inventory"
+        ],
+        "summary": "Equip Item",
+        "operationId": "equip_item_api_inventory_equip__item_id__post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EquipResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/class/awakening/{class_key}": {
+      "post": {
+        "tags": [
+          "class"
+        ],
+        "summary": "Choose Awakening",
+        "operationId": "choose_awakening_api_class_awakening__class_key__post",
+        "parameters": [
+          {
+            "name": "class_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Class Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwakeningResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/class/jobchange/{class_key}": {
+      "post": {
+        "tags": [
+          "class"
+        ],
+        "summary": "Choose Jobchange",
+        "operationId": "choose_jobchange_api_class_jobchange__class_key__post",
+        "parameters": [
+          {
+            "name": "class_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Class Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobChangeResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AwakeningResult": {
+        "properties": {
+          "class_stage1": {
+            "type": "string",
+            "title": "Class Stage1"
+          },
+          "class_name": {
+            "type": "string",
+            "title": "Class Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "class_stage1",
+          "class_name"
+        ],
+        "title": "AwakeningResult"
+      },
+      "BossDefeat": {
+        "properties": {
+          "xp_reward": {
+            "type": "integer",
+            "title": "Xp Reward"
+          },
+          "gold_reward": {
+            "type": "integer",
+            "title": "Gold Reward"
+          },
+          "xp": {
+            "type": "integer",
+            "title": "Xp"
+          },
+          "gold": {
+            "type": "integer",
+            "title": "Gold"
+          },
+          "loot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LootItem"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "xp_reward",
+          "gold_reward",
+          "xp",
+          "gold"
+        ],
+        "title": "BossDefeat"
+      },
+      "BossRoom": {
+        "properties": {
+          "boss": {
+            "$ref": "#/components/schemas/Enemy"
+          },
+          "time_left": {
+            "type": "integer",
+            "title": "Time Left"
+          }
+        },
+        "type": "object",
+        "required": [
+          "boss",
+          "time_left"
+        ],
+        "title": "BossRoom"
+      },
+      "BoughtItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "rarity": {
+            "type": "string",
+            "title": "Rarity"
+          },
+          "slot": {
+            "type": "string",
+            "title": "Slot"
+          },
+          "strength": {
+            "type": "integer",
+            "title": "Strength"
+          },
+          "intelligence": {
+            "type": "integer",
+            "title": "Intelligence"
+          },
+          "agility": {
+            "type": "integer",
+            "title": "Agility"
+          },
+          "vitality": {
+            "type": "integer",
+            "title": "Vitality"
+          },
+          "sense": {
+            "type": "integer",
+            "title": "Sense"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "rarity",
+          "slot",
+          "strength",
+          "intelligence",
+          "agility",
+          "vitality",
+          "sense"
+        ],
+        "title": "BoughtItem"
+      },
+      "BuyResult": {
+        "properties": {
+          "gold": {
+            "type": "integer",
+            "title": "Gold"
+          },
+          "item": {
+            "$ref": "#/components/schemas/BoughtItem"
+          }
+        },
+        "type": "object",
+        "required": [
+          "gold",
+          "item"
+        ],
+        "title": "BuyResult"
+      },
+      "ClaimResult": {
+        "properties": {
+          "xp_gained": {
+            "type": "integer",
+            "title": "Xp Gained"
+          },
+          "xp": {
+            "type": "integer",
+            "title": "Xp"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "level_ups": {
+            "type": "integer",
+            "title": "Level Ups"
+          },
+          "streak": {
+            "type": "integer",
+            "title": "Streak"
+          },
+          "stat_points": {
+            "type": "integer",
+            "title": "Stat Points"
+          },
+          "hidden_rolls": {
+            "type": "integer",
+            "title": "Hidden Rolls"
+          }
+        },
+        "type": "object",
+        "required": [
+          "xp_gained",
+          "xp",
+          "level",
+          "level_ups",
+          "streak",
+          "stat_points",
+          "hidden_rolls"
+        ],
+        "title": "ClaimResult"
+      },
+      "DailyStartResult": {
+        "properties": {
+          "active_quests": {
+            "items": {
+              "$ref": "#/components/schemas/Quest"
+            },
+            "type": "array",
+            "title": "Active Quests"
+          },
+          "quest_progress": {
+            "type": "integer",
+            "title": "Quest Progress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "active_quests",
+          "quest_progress"
+        ],
+        "title": "DailyStartResult"
+      },
+      "DailyState": {
+        "properties": {
+          "active_quests": {
+            "items": {
+              "$ref": "#/components/schemas/Quest"
+            },
+            "type": "array",
+            "title": "Active Quests"
+          },
+          "quest_progress": {
+            "type": "integer",
+            "title": "Quest Progress"
+          },
+          "cooldown_active": {
+            "type": "boolean",
+            "title": "Cooldown Active"
+          },
+          "cooldown_remaining": {
+            "type": "integer",
+            "title": "Cooldown Remaining"
+          },
+          "streak": {
+            "type": "integer",
+            "title": "Streak"
+          }
+        },
+        "type": "object",
+        "required": [
+          "active_quests",
+          "quest_progress",
+          "cooldown_active",
+          "cooldown_remaining",
+          "streak"
+        ],
+        "title": "DailyState"
+      },
+      "DungeonList": {
+        "properties": {
+          "available_ranks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Available Ranks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "available_ranks"
+        ],
+        "title": "DungeonList"
+      },
+      "DungeonRollResult": {
+        "properties": {
+          "found": {
+            "type": "boolean",
+            "title": "Found"
+          },
+          "dungeon_rolls": {
+            "type": "integer",
+            "title": "Dungeon Rolls"
+          },
+          "gate_rank": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gate Rank"
+          },
+          "enemies": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Enemy"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enemies"
+          },
+          "time_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Limit"
+          },
+          "dungeon_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dungeon End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "found",
+          "dungeon_rolls"
+        ],
+        "title": "DungeonRollResult"
+      },
+      "DungeonTask": {
+        "properties": {
+          "dungeon_progress": {
+            "type": "integer",
+            "title": "Dungeon Progress"
+          },
+          "total_enemies": {
+            "type": "integer",
+            "title": "Total Enemies"
+          },
+          "boss_available": {
+            "type": "boolean",
+            "title": "Boss Available"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dungeon_progress",
+          "total_enemies",
+          "boss_available"
+        ],
+        "title": "DungeonTask"
+      },
+      "Enemy": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "task": {
+            "type": "string",
+            "title": "Task"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "task"
+        ],
+        "title": "Enemy"
+      },
+      "EnterDungeon": {
+        "properties": {
+          "rank": {
+            "type": "string",
+            "title": "Rank"
+          },
+          "enemies": {
+            "items": {
+              "$ref": "#/components/schemas/Enemy"
+            },
+            "type": "array",
+            "title": "Enemies"
+          },
+          "time_limit": {
+            "type": "integer",
+            "title": "Time Limit"
+          },
+          "dungeon_end": {
+            "type": "string",
+            "title": "Dungeon End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "enemies",
+          "time_limit",
+          "dungeon_end"
+        ],
+        "title": "EnterDungeon"
+      },
+      "EquipResult": {
+        "properties": {
+          "equipped": {
+            "$ref": "#/components/schemas/InventoryItem"
+          }
+        },
+        "type": "object",
+        "required": [
+          "equipped"
+        ],
+        "title": "EquipResult"
+      },
+      "Equipment": {
+        "properties": {
+          "weapon": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InventoryItem"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "armor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InventoryItem"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "charm": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InventoryItem"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Equipment"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HiddenClaimResult": {
+        "properties": {
+          "quest_name": {
+            "type": "string",
+            "title": "Quest Name"
+          },
+          "xp_gained": {
+            "type": "integer",
+            "title": "Xp Gained"
+          },
+          "rarity": {
+            "type": "string",
+            "title": "Rarity"
+          },
+          "rarity_label": {
+            "type": "string",
+            "title": "Rarity Label"
+          },
+          "xp": {
+            "type": "integer",
+            "title": "Xp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "quest_name",
+          "xp_gained",
+          "rarity",
+          "rarity_label",
+          "xp"
+        ],
+        "title": "HiddenClaimResult"
+      },
+      "HiddenQuest": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "xp": {
+            "type": "integer",
+            "title": "Xp"
+          },
+          "rarity": {
+            "type": "string",
+            "title": "Rarity"
+          },
+          "rarity_label": {
+            "type": "string",
+            "title": "Rarity Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "name",
+          "xp",
+          "rarity",
+          "rarity_label"
+        ],
+        "title": "HiddenQuest"
+      },
+      "HiddenRollResult": {
+        "properties": {
+          "found": {
+            "type": "boolean",
+            "title": "Found"
+          },
+          "hidden_rolls": {
+            "type": "integer",
+            "title": "Hidden Rolls"
+          },
+          "quest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HiddenQuest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "found",
+          "hidden_rolls"
+        ],
+        "title": "HiddenRollResult"
+      },
+      "InventoryItem": {
+        "properties": {
+          "item_id": {
+            "type": "integer",
+            "title": "Item Id"
+          },
+          "item_name": {
+            "type": "string",
+            "title": "Item Name"
+          },
+          "slot": {
+            "type": "string",
+            "title": "Slot"
+          },
+          "rarity": {
+            "type": "string",
+            "title": "Rarity"
+          },
+          "strength": {
+            "type": "integer",
+            "title": "Strength"
+          },
+          "intelligence": {
+            "type": "integer",
+            "title": "Intelligence"
+          },
+          "agility": {
+            "type": "integer",
+            "title": "Agility"
+          },
+          "vitality": {
+            "type": "integer",
+            "title": "Vitality"
+          },
+          "sense": {
+            "type": "integer",
+            "title": "Sense"
+          },
+          "equipped": {
+            "type": "integer",
+            "title": "Equipped"
+          }
+        },
+        "type": "object",
+        "required": [
+          "item_id",
+          "item_name",
+          "slot",
+          "rarity",
+          "strength",
+          "intelligence",
+          "agility",
+          "vitality",
+          "sense",
+          "equipped"
+        ],
+        "title": "InventoryItem"
+      },
+      "InventoryList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InventoryItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "InventoryList"
+      },
+      "JobChangeResult": {
+        "properties": {
+          "class_stage2": {
+            "type": "string",
+            "title": "Class Stage2"
+          },
+          "class_name": {
+            "type": "string",
+            "title": "Class Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "class_stage2",
+          "class_name"
+        ],
+        "title": "JobChangeResult"
+      },
+      "LootItem": {
+        "properties": {
+          "item_name": {
+            "type": "string",
+            "title": "Item Name"
+          },
+          "slot": {
+            "type": "string",
+            "title": "Slot"
+          },
+          "rarity": {
+            "type": "string",
+            "title": "Rarity"
+          },
+          "strength": {
+            "type": "integer",
+            "title": "Strength"
+          },
+          "intelligence": {
+            "type": "integer",
+            "title": "Intelligence"
+          },
+          "agility": {
+            "type": "integer",
+            "title": "Agility"
+          },
+          "vitality": {
+            "type": "integer",
+            "title": "Vitality"
+          },
+          "sense": {
+            "type": "integer",
+            "title": "Sense"
+          }
+        },
+        "type": "object",
+        "required": [
+          "item_name",
+          "slot",
+          "rarity",
+          "strength",
+          "intelligence",
+          "agility",
+          "vitality",
+          "sense"
+        ],
+        "title": "LootItem"
+      },
+      "Quest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "xp": {
+            "type": "integer",
+            "title": "Xp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "xp"
+        ],
+        "title": "Quest"
+      },
+      "ShopItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price": {
+            "type": "integer",
+            "title": "Price"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "price"
+        ],
+        "title": "ShopItem"
+      },
+      "ShopList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ShopItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "gold": {
+            "type": "integer",
+            "title": "Gold"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "gold"
+        ],
+        "title": "ShopList"
+      },
+      "SpendRequest": {
+        "properties": {
+          "stat": {
+            "type": "string",
+            "title": "Stat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stat"
+        ],
+        "title": "SpendRequest"
+      },
+      "SpendResult": {
+        "properties": {
+          "stat_points": {
+            "type": "integer",
+            "title": "Stat Points"
+          },
+          "str": {
+            "type": "integer",
+            "title": "Str"
+          },
+          "int": {
+            "type": "integer",
+            "title": "Int"
+          },
+          "agi": {
+            "type": "integer",
+            "title": "Agi"
+          },
+          "vit": {
+            "type": "integer",
+            "title": "Vit"
+          },
+          "sense": {
+            "type": "integer",
+            "title": "Sense"
+          },
+          "equipped_bonuses": {
+            "$ref": "#/components/schemas/StatBlock"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stat_points",
+          "str",
+          "int",
+          "agi",
+          "vit",
+          "sense",
+          "equipped_bonuses"
+        ],
+        "title": "SpendResult"
+      },
+      "StatBlock": {
+        "properties": {
+          "str": {
+            "type": "integer",
+            "title": "Str"
+          },
+          "int": {
+            "type": "integer",
+            "title": "Int"
+          },
+          "agi": {
+            "type": "integer",
+            "title": "Agi"
+          },
+          "vit": {
+            "type": "integer",
+            "title": "Vit"
+          },
+          "sense": {
+            "type": "integer",
+            "title": "Sense"
+          }
+        },
+        "type": "object",
+        "required": [
+          "str",
+          "int",
+          "agi",
+          "vit",
+          "sense"
+        ],
+        "title": "StatBlock",
+        "description": "The five core stats, using the short keys the UI is built around.\n\nField names intentionally mirror the UI keys (``str``/``int``/...). They\nshadow builtins only as attribute names, which is harmless for a schema."
+      },
+      "TaskProgress": {
+        "properties": {
+          "quest_progress": {
+            "type": "integer",
+            "title": "Quest Progress"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "quest_progress",
+          "total"
+        ],
+        "title": "TaskProgress"
+      },
+      "UserStats": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "rank": {
+            "type": "string",
+            "title": "Rank"
+          },
+          "xp": {
+            "type": "integer",
+            "title": "Xp"
+          },
+          "xp_needed": {
+            "type": "integer",
+            "title": "Xp Needed"
+          },
+          "gold": {
+            "type": "integer",
+            "title": "Gold"
+          },
+          "streak": {
+            "type": "integer",
+            "title": "Streak"
+          },
+          "stat_points": {
+            "type": "integer",
+            "title": "Stat Points"
+          },
+          "str": {
+            "type": "integer",
+            "title": "Str"
+          },
+          "int": {
+            "type": "integer",
+            "title": "Int"
+          },
+          "agi": {
+            "type": "integer",
+            "title": "Agi"
+          },
+          "vit": {
+            "type": "integer",
+            "title": "Vit"
+          },
+          "sense": {
+            "type": "integer",
+            "title": "Sense"
+          },
+          "equipped_bonuses": {
+            "$ref": "#/components/schemas/StatBlock"
+          },
+          "hidden_rolls": {
+            "type": "integer",
+            "title": "Hidden Rolls"
+          },
+          "dungeon_rolls": {
+            "type": "integer",
+            "title": "Dungeon Rolls"
+          },
+          "awakened": {
+            "type": "integer",
+            "title": "Awakened"
+          },
+          "job_changed": {
+            "type": "integer",
+            "title": "Job Changed"
+          },
+          "awakening_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Awakening Class"
+          },
+          "job_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Class"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "level",
+          "rank",
+          "xp",
+          "xp_needed",
+          "gold",
+          "streak",
+          "stat_points",
+          "str",
+          "int",
+          "agi",
+          "vit",
+          "sense",
+          "equipped_bonuses",
+          "hidden_rolls",
+          "dungeon_rolls",
+          "awakened",
+          "job_changed"
+        ],
+        "title": "UserStats"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

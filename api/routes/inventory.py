@@ -5,6 +5,7 @@ import sqlite3
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth import get_current_user
+from api.schemas import Equipment, EquipResult, InventoryList
 from game.db import conn, cursor
 
 router = APIRouter()
@@ -27,7 +28,7 @@ def _row_to_dict(row):
     }
 
 
-@router.get("")
+@router.get("", response_model=InventoryList)
 def list_inventory(user: sqlite3.Row = Depends(get_current_user)):
     cursor.execute(
         "SELECT * FROM inventory WHERE user_id=? ORDER BY rarity DESC",
@@ -37,7 +38,7 @@ def list_inventory(user: sqlite3.Row = Depends(get_current_user)):
     return {"items": [_row_to_dict(i) for i in items]}
 
 
-@router.get("/equipment")
+@router.get("/equipment", response_model=Equipment)
 def get_equipment(user: sqlite3.Row = Depends(get_current_user)):
     cursor.execute("SELECT * FROM equipment WHERE user_id=?", (user["user_id"],))
     eq = cursor.fetchone()
@@ -58,7 +59,7 @@ def get_equipment(user: sqlite3.Row = Depends(get_current_user)):
     }
 
 
-@router.post("/equip/{item_id}")
+@router.post("/equip/{item_id}", response_model=EquipResult)
 def equip_item(item_id: int, user: sqlite3.Row = Depends(get_current_user)):
     cursor.execute("SELECT * FROM inventory WHERE item_id=?", (item_id,))
     item = cursor.fetchone()

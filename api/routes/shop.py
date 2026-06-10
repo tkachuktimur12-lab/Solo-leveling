@@ -5,6 +5,7 @@ import sqlite3
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth import get_current_user
+from api.schemas import BuyResult, ShopList
 from game.constants import SHOP_ITEMS
 from game.db import conn, cursor, get_equipped_stats
 from game.game_logic import generate_item
@@ -12,13 +13,13 @@ from game.game_logic import generate_item
 router = APIRouter()
 
 
-@router.get("")
+@router.get("", response_model=ShopList)
 def list_shop(user: sqlite3.Row = Depends(get_current_user)):
     items = [{"name": name, "price": price} for name, price in SHOP_ITEMS]
     return {"items": items, "gold": user["gold"]}
 
 
-@router.post("/buy/{item_name}")
+@router.post("/buy/{item_name}", response_model=BuyResult)
 def buy_item(item_name: str, user: sqlite3.Row = Depends(get_current_user)):
     price = dict(SHOP_ITEMS).get(item_name)
     if price is None:

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth import get_current_user
+from api.schemas import BossDefeat, BossRoom, DungeonList, DungeonTask, EnterDungeon
 from game.constants import DUNGEONS
 from game.db import conn, cursor, get_equipped_stats, get_user
 from game.game_logic import loot_chance, safe_json
@@ -56,13 +57,13 @@ def _rarity_for_rank(rank: str):
     return "common"
 
 
-@router.get("")
+@router.get("", response_model=DungeonList)
 def list_dungeons(user: sqlite3.Row = Depends(get_current_user)):
     available = ["E", "D", "C"]
     return {"available_ranks": available}
 
 
-@router.post("/enter/{rank}")
+@router.post("/enter/{rank}", response_model=EnterDungeon)
 def enter_dungeon(rank: str, user: sqlite3.Row = Depends(get_current_user)):
     rank = rank.upper()
     if rank not in DUNGEONS:
@@ -91,7 +92,7 @@ def enter_dungeon(rank: str, user: sqlite3.Row = Depends(get_current_user)):
     }
 
 
-@router.post("/task/{index}")
+@router.post("/task/{index}", response_model=DungeonTask)
 def dungeon_task(index: int, user: sqlite3.Row = Depends(get_current_user)):
     current = get_user(user["user_id"])
     dungeon_data = safe_json(current["dungeon_active"], None)
@@ -123,7 +124,7 @@ def dungeon_task(index: int, user: sqlite3.Row = Depends(get_current_user)):
     }
 
 
-@router.post("/boss")
+@router.post("/boss", response_model=BossRoom)
 def enter_boss(user: sqlite3.Row = Depends(get_current_user)):
     current = get_user(user["user_id"])
     dungeon_data = safe_json(current["dungeon_active"], None)
@@ -143,7 +144,7 @@ def enter_boss(user: sqlite3.Row = Depends(get_current_user)):
     }
 
 
-@router.post("/boss/defeat")
+@router.post("/boss/defeat", response_model=BossDefeat)
 def defeat_boss(user: sqlite3.Row = Depends(get_current_user)):
     current = get_user(user["user_id"])
     dungeon_data = safe_json(current["dungeon_active"], None)

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth import get_current_user
+from api.schemas import ClaimResult, DailyState, DailyStartResult, TaskProgress
 from game.constants import QUESTS
 from game.db import conn, cursor, get_equipped_stats, get_user
 from game.game_logic import apply_stat_bonuses, safe_json
@@ -15,7 +16,7 @@ from game.game_logic import apply_stat_bonuses, safe_json
 router = APIRouter()
 
 
-@router.get("")
+@router.get("", response_model=DailyState)
 def daily_state(user: sqlite3.Row = Depends(get_current_user)):
     tasks = safe_json(user["active_quests"], [])
     last = user["last_daily"]
@@ -29,7 +30,7 @@ def daily_state(user: sqlite3.Row = Depends(get_current_user)):
             cooldown_remaining = int((timedelta(hours=24) - elapsed).total_seconds())
 
     return {
-        "active_quests": tasks,
+        "active_quests": [{"name": t[0], "xp": t[1]} for t in tasks],
         "quest_progress": user["quest_progress"],
         "cooldown_active": cooldown_active,
         "cooldown_remaining": cooldown_remaining,
@@ -37,7 +38,7 @@ def daily_state(user: sqlite3.Row = Depends(get_current_user)):
     }
 
 
-@router.post("/start")
+@router.post("/start", response_model=DailyStartResult)
 def start_daily(user: sqlite3.Row = Depends(get_current_user)):
     last = user["last_daily"]
     if last and last != "0":
@@ -51,10 +52,13 @@ def start_daily(user: sqlite3.Row = Depends(get_current_user)):
     )
     conn.commit()
 
-    return {"active_quests": tasks, "quest_progress": 0}
+    return {
+        "active_quests": [{"name": name, "xp": xp} for name, xp in tasks],
+        "quest_progress": 0,
+    }
 
 
-@router.post("/task/{index}")
+@router.post("/task/{index}", response_model=TaskProgress)
 def complete_task(index: int, user: sqlite3.Row = Depends(get_current_user)):
     tasks = safe_json(user["active_quests"], None)
     if not tasks:
@@ -74,7 +78,7 @@ def complete_task(index: int, user: sqlite3.Row = Depends(get_current_user)):
     return {"quest_progress": progress, "total": len(tasks)}
 
 
-@router.post("/claim")
+@router.post("/claim", response_model=ClaimResult)
 def claim_daily(user: sqlite3.Row = Depends(get_current_user)):
     progress = user["quest_progress"]
     if progress < 5:

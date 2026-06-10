@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth import get_current_user
+from api.schemas import DungeonRollResult, HiddenClaimResult, HiddenRollResult
 from game.constants import DUNGEONS, HIDDEN_QUESTS
 from game.db import conn, cursor, get_equipped_stats, get_user
 from game.game_logic import get_rank
@@ -41,7 +42,7 @@ def _dungeon_roll_gate_rank(hunter_rank: str):
     return None
 
 
-@router.post("/hidden")
+@router.post("/hidden", response_model=HiddenRollResult)
 def hidden_roll(user: sqlite3.Row = Depends(get_current_user)):
     user_id = user["user_id"]
     rolls = user["hidden_rolls"]
@@ -85,7 +86,7 @@ def hidden_roll(user: sqlite3.Row = Depends(get_current_user)):
         return {"found": False, "hidden_rolls": rolls}
 
 
-@router.post("/hidden/claim/{index}")
+@router.post("/hidden/claim/{index}", response_model=HiddenClaimResult)
 def claim_hidden(index: int, user: sqlite3.Row = Depends(get_current_user)):
     if index < 0 or index >= len(HIDDEN_QUESTS):
         raise HTTPException(status_code=400, detail="Invalid hidden quest index")
@@ -107,7 +108,7 @@ def claim_hidden(index: int, user: sqlite3.Row = Depends(get_current_user)):
     }
 
 
-@router.post("/dungeon")
+@router.post("/dungeon", response_model=DungeonRollResult)
 def dungeon_roll(user: sqlite3.Row = Depends(get_current_user)):
     user_id = user["user_id"]
     dungeon_rolls = user["dungeon_rolls"] or 0

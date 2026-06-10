@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+# Solo Leveling — Mini App (web)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite + TypeScript + Mantine frontend for the Solo Leveling Telegram Mini App.
 
-Currently, two official plugins are available:
+## Develop
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # Vite dev server; proxies /api to http://localhost:8000
+npm run build    # type-check (tsc -b) + production build
+npm run lint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## API types are generated — don't hand-write them
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+All request/response types come from the backend's FastAPI OpenAPI schema, which
+is the single source of truth for the API contract.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- `npm run gen:api` exports `openapi.json` from the FastAPI app and regenerates
+  `src/api/schema.d.ts`. Run it after any change to `api/schemas.py` or a route's
+  `response_model`. It shells out to `../scripts/export_openapi.py`, so the
+  backend Python dependencies must be importable (activate the project
+  virtualenv first). To only regenerate types from an existing `openapi.json`,
+  run `npm run gen:types`.
+- `src/api.ts` exposes a typed [`openapi-fetch`](https://openapi-ts.dev/openapi-fetch/)
+  client (`api`) plus an `unwrap` helper that returns the typed `data` or throws
+  on a non-2xx response. The Telegram `tma` auth header is injected via
+  middleware.
+- `src/api/types.ts` re-exports friendly aliases for the generated component
+  schemas (e.g. `UserStats`, `DailyState`, `BossDefeat`).
+
+### Example
+
+```ts
+import { api, unwrap } from './api';
+import type { UserStats } from './api/types';
+
+// GET with no params
+const stats: UserStats = await unwrap(api.GET('/api/user/stats'));
+
+// Path params + request body are type-checked against the schema
+await unwrap(api.POST('/api/dungeons/enter/{rank}', {
+  params: { path: { rank: 'E' } },
+}));
+await unwrap(api.POST('/api/user/spend', { body: { stat: 'str' } }));
 ```
+
+The generated `openapi.json` and `src/api/schema.d.ts` are committed so contract
+changes are visible in code review. If you change a backend model and forget to
+regenerate, the mismatch surfaces as a `tsc` error here rather than a runtime bug.

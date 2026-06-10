@@ -1,12 +1,55 @@
 import os
 import sqlite3
+import threading
 
 
 _DB_PATH = os.environ.get("SOLO_DB_PATH", "hunters.db")
 
-conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
-conn.row_factory = sqlite3.Row
-cursor = conn.cursor()
+# SQLite connections/cursors cannot be safely shared across threads. FastAPI
+# serves sync endpoints from a threadpool, so concurrent requests (e.g. the
+# inventory page loads /api/inventory and /api/inventory/equipment in parallel)
+# previously used one shared cursor and raised "Recursive use of cursors not
+# allowed", which could wedge the connection and hang the server until restart.
+#
+# Give every thread its own connection + cursor via thread-local storage. The
+# module-level ``conn``/``cursor`` names are kept as transparent proxies so the
+# rest of the codebase needs no changes.
+_local = threading.local()
+
+
+def _init_thread_state() -> None:
+    connection = sqlite3.connect(_DB_PATH, check_same_thread=False)
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA journal_mode=WAL")
+    connection.execute("PRAGMA busy_timeout=5000")
+    _local.connection = connection
+    _local.cursor = connection.cursor()
+
+
+def _get_connection() -> sqlite3.Connection:
+    if getattr(_local, "connection", None) is None:
+        _init_thread_state()
+    return _local.connection
+
+
+def _get_cursor() -> sqlite3.Cursor:
+    if getattr(_local, "cursor", None) is None:
+        _init_thread_state()
+    return _local.cursor
+
+
+class _ThreadLocalProxy:
+    """Delegates attribute access to the calling thread's sqlite object."""
+
+    def __init__(self, getter):
+        self._getter = getter
+
+    def __getattr__(self, name):
+        return getattr(self._getter(), name)
+
+
+conn = _ThreadLocalProxy(_get_connection)
+cursor = _ThreadLocalProxy(_get_cursor)
 
 
 def init_db():
@@ -14,6 +57,7 @@ def init_db():
         """
     CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY,
+        name TEXT,
         xp INTEGER,
         level INTEGER,
         gold INTEGER,
@@ -69,6 +113,12 @@ def init_db():
     )
     """
     )
+
+    # Lightweight migration: add columns introduced after the initial release
+    # so existing databases pick them up without a manual reset.
+    existing_cols = {row["name"] for row in cursor.execute("PRAGMA table_info(users)").fetchall()}
+    if "name" not in existing_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN name TEXT")
 
     cursor.execute("PRAGMA foreign_keys = ON")
     conn.commit()
@@ -131,6 +181,14 @@ def get_user(user_id):
         user = cursor.fetchone()
 
     return user
+
+
+def set_user_name(user_id, name):
+    """Persist the hunter's display name (sourced from Telegram init data)."""
+    if not name:
+        return
+    cursor.execute("UPDATE users SET name=? WHERE user_id=?", (name, user_id))
+    conn.commit()
 
 
 def get_equipped_stats(user_id):

@@ -45,6 +45,16 @@ The dev server proxies `/api` requests to `http://localhost:8000`.
 2. Go to **Bot Settings → Configure Mini App → Edit Mini App URL**
 3. Set the URL to your deployed frontend (e.g. your HTTPS tunnel or hosting URL)
 
+## Keeping frontend & backend models in sync
+The backend's FastAPI OpenAPI schema is the **single source of truth** for the API contract. The React app's request/response types are generated from it, so a backend model change that isn't reflected in the frontend becomes a TypeScript compile error instead of a silent runtime bug.
+Whenever you change an API model (`api/schemas.py`) or a route's `response_model`, regenerate the frontend types:
+```bash
+cd webapp
+npm run gen:api   # writes webapp/openapi.json, then src/api/schema.d.ts
+```
+`gen:api` runs `scripts/export_openapi.py` (needs the backend deps importable — activate your virtualenv first) followed by `openapi-typescript`. The generated `webapp/openapi.json` and `webapp/src/api/schema.d.ts` are committed so contract changes show up in review.
+In the app, use the typed client in `webapp/src/api.ts` (`api.GET` / `api.POST` + `unwrap`) and the aliases in `webapp/src/api/types.ts` instead of hand-writing interfaces.
+
 ## Run the Bot (legacy)
 ```bash
 pip install -r requirements.txt
@@ -57,3 +67,4 @@ python main.py
 - **Backend**: Python, FastAPI, SQLite
 - **Frontend**: React 18, Vite, TypeScript, Mantine v7
 - **Telegram**: @telegram-apps/sdk-react, telegram-init-data
+- **API types**: OpenAPI (FastAPI) → TypeScript via openapi-typescript + openapi-fetch

@@ -2,9 +2,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Text, Tabs, Loader, Center, Card, Badge, Group } from '@mantine/core';
 import { ItemCard } from '../components/ItemCard';
-import { apiGet, apiPost } from '../api';
+import { api, unwrap } from '../api';
+import type { InventoryItem as ApiInventoryItem } from '../api/types';
 import { GAME_COLORS, RARITY_COLORS } from '../theme';
 
+// UI-facing shape (normalized from the API row below).
 interface InventoryItem {
   id: number;
   name: string;
@@ -19,6 +21,25 @@ interface EquipmentSlot {
   item: InventoryItem | null;
 }
 
+const EQUIPMENT_SLOTS = ['weapon', 'armor', 'charm'] as const;
+
+function toInventoryItem(raw: ApiInventoryItem): InventoryItem {
+  return {
+    id: raw.item_id,
+    name: raw.item_name,
+    rarity: raw.rarity,
+    slot: raw.slot,
+    stats: {
+      str: raw.strength,
+      int: raw.intelligence,
+      agi: raw.agility,
+      vit: raw.vitality,
+      sense: raw.sense,
+    },
+    equipped: Boolean(raw.equipped),
+  };
+}
+
 export function InventoryPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -28,11 +49,16 @@ export function InventoryPage() {
   const fetchData = useCallback(async () => {
     try {
       const [inv, equip] = await Promise.all([
-        apiGet<InventoryItem[] | { items: InventoryItem[] }>('/api/inventory'),
-        apiGet<EquipmentSlot[] | { slots: EquipmentSlot[] }>('/api/inventory/equipment'),
+        unwrap(api.GET('/api/inventory')),
+        unwrap(api.GET('/api/inventory/equipment')),
       ]);
-      setItems(Array.isArray(inv) ? inv : inv.items ?? []);
-      setEquipment(Array.isArray(equip) ? equip : equip.slots ?? []);
+      setItems(inv.items.map(toInventoryItem));
+      setEquipment(
+        EQUIPMENT_SLOTS.map((slot) => ({
+          slot,
+          item: equip[slot] ? toInventoryItem(equip[slot] as ApiInventoryItem) : null,
+        })),
+      );
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, []);
@@ -41,7 +67,7 @@ export function InventoryPage() {
 
   const equipItem = async (id: number) => {
     try {
-      await apiPost(`/api/inventory/equip/${id}`);
+      await unwrap(api.POST('/api/inventory/equip/{item_id}', { params: { path: { item_id: id } } }));
       fetchData();
     } catch (e) { console.error(e); }
   };

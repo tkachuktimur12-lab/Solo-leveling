@@ -5,7 +5,8 @@ import sqlite3
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth import get_current_user
-from api.models import SpendRequest
+from api.schemas import SpendRequest, SpendResult, UserStats
+from game.constants import AWAKENING_CLASSES, JOB_CLASSES
 from game.db import conn, cursor, get_equipped_stats
 from game.game_logic import get_rank
 
@@ -20,38 +21,43 @@ STAT_MAP = {
 }
 
 
-@router.get("/stats")
+def _class_display(mapping, key):
+    """Map a stored class key to its display name, or None if unchosen."""
+    if not key or key == "none":
+        return None
+    return mapping.get(key)
+
+
+@router.get("/stats", response_model=UserStats)
 def stats(user: sqlite3.Row = Depends(get_current_user)):
     equip = get_equipped_stats(user["user_id"])
+    level = user["level"]
     return {
         "user_id": user["user_id"],
-        "level": user["level"],
-        "rank": get_rank(user["level"]),
+        "name": user["name"] or "Hunter",
+        "level": level,
+        "rank": get_rank(level),
         "xp": user["xp"],
+        "xp_needed": level * 100,
         "gold": user["gold"],
         "streak": user["streak"],
         "stat_points": user["stat_points"],
-        "strength": user["strength"],
-        "intelligence": user["intelligence"],
-        "agility": user["agility"],
-        "vitality": user["vitality"],
+        "str": user["strength"],
+        "int": user["intelligence"],
+        "agi": user["agility"],
+        "vit": user["vitality"],
         "sense": user["sense"],
-        "equipped_bonus": equip,
-        "total_str": user["strength"] + equip["str"],
-        "total_int": user["intelligence"] + equip["int"],
-        "total_agi": user["agility"] + equip["agi"],
-        "total_vit": user["vitality"] + equip["vit"],
-        "total_sense": user["sense"] + equip["sense"],
+        "equipped_bonuses": equip,
         "hidden_rolls": user["hidden_rolls"],
         "dungeon_rolls": user["dungeon_rolls"] or 0,
         "awakened": user["awakened"],
         "job_changed": user["job_changed"],
-        "class_stage1": user["class_stage1"],
-        "class_stage2": user["class_stage2"],
+        "awakening_class": _class_display(AWAKENING_CLASSES, user["class_stage1"]),
+        "job_class": _class_display(JOB_CLASSES, user["class_stage2"]),
     }
 
 
-@router.post("/spend")
+@router.post("/spend", response_model=SpendResult)
 def spend(body: SpendRequest, user: sqlite3.Row = Depends(get_current_user)):
     if body.stat not in STAT_MAP:
         raise HTTPException(status_code=400, detail="Invalid stat key")
@@ -73,10 +79,10 @@ def spend(body: SpendRequest, user: sqlite3.Row = Depends(get_current_user)):
     equip = get_equipped_stats(user["user_id"])
     return {
         "stat_points": updated["stat_points"],
-        "strength": updated["strength"],
-        "intelligence": updated["intelligence"],
-        "agility": updated["agility"],
-        "vitality": updated["vitality"],
+        "str": updated["strength"],
+        "int": updated["intelligence"],
+        "agi": updated["agility"],
+        "vit": updated["vitality"],
         "sense": updated["sense"],
-        "equipped_bonus": equip,
+        "equipped_bonuses": equip,
     }

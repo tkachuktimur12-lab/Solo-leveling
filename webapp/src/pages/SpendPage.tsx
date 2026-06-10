@@ -1,17 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Card, Text, Button, Group, Loader, Center, Badge } from '@mantine/core';
-import { apiGet, apiPost } from '../api';
+import { api, unwrap } from '../api';
+import type { UserStats } from '../api/types';
 import { GAME_COLORS } from '../theme';
 
-interface Stats {
-  str: number;
-  int: number;
-  agi: number;
-  vit: number;
-  sense: number;
-  stat_points: number;
-}
+type SpendStats = Pick<UserStats, 'str' | 'int' | 'agi' | 'vit' | 'sense' | 'stat_points'>;
 
 const STAT_CONFIG = [
   { key: 'str', label: 'STR', icon: '💪', color: '#4FC3F7' },
@@ -23,13 +17,13 @@ const STAT_CONFIG = [
 
 export function SpendPage() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<SpendStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [spending, setSpending] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     try {
-      const data = await apiGet<Stats>('/api/user/stats');
+      const data = await unwrap(api.GET('/api/user/stats'));
       setStats(data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -40,7 +34,7 @@ export function SpendPage() {
   const spendPoint = async (stat: string) => {
     setSpending(stat);
     try {
-      await apiPost('/api/user/spend', { stat });
+      await unwrap(api.POST('/api/user/spend', { body: { stat } }));
       await fetchStats();
     } catch (e) { console.error(e); }
     finally { setSpending(null); }
@@ -75,7 +69,7 @@ export function SpendPage() {
                 <div>
                   <Text size="sm" fw={600}>{label}</Text>
                   <Text size="xl" fw={700} style={{ color }}>
-                    {stats[key as keyof Stats]}
+                    {stats[key]}
                   </Text>
                 </div>
               </Group>

@@ -5,13 +5,14 @@ import sqlite3
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth import get_current_user
+from api.schemas import AwakeningResult, JobChangeResult
 from game.constants import AWAKENING_CLASSES, JOB_CLASSES
 from game.db import conn, cursor
 
 router = APIRouter()
 
 
-@router.post("/awakening/{class_key}")
+@router.post("/awakening/{class_key}", response_model=AwakeningResult)
 def choose_awakening(class_key: str, user: sqlite3.Row = Depends(get_current_user)):
     if class_key not in AWAKENING_CLASSES:
         raise HTTPException(status_code=400, detail="Invalid class key")
@@ -35,7 +36,7 @@ def choose_awakening(class_key: str, user: sqlite3.Row = Depends(get_current_use
     }
 
 
-@router.post("/jobchange/{class_key}")
+@router.post("/jobchange/{class_key}", response_model=JobChangeResult)
 def choose_jobchange(class_key: str, user: sqlite3.Row = Depends(get_current_user)):
     if class_key not in JOB_CLASSES:
         raise HTTPException(status_code=400, detail="Invalid class key")

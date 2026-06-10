@@ -2,16 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SimpleGrid, Button, Stack, Text, Loader, Center } from '@mantine/core';
 import { HunterCard } from '../components/HunterCard';
-import { apiGet } from '../api';
+import { api, unwrap } from '../api';
+import type { UserStats } from '../api/types';
 import { GAME_COLORS } from '../theme';
 
-interface UserStats {
-  name: string;
-  level: number;
-  rank: string;
-  xp: number;
-  xp_needed: number;
-}
+type MenuStats = Pick<UserStats, 'name' | 'level' | 'rank' | 'xp' | 'xp_needed'>;
 
 const MENU_ITEMS = [
   { label: '⚔️ Daily', path: '/daily', gradient: ['#4FC3F7', '#0089ff'] },
@@ -24,11 +19,11 @@ const MENU_ITEMS = [
 
 export function MenuPage() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<UserStats | null>(null);
+  const [stats, setStats] = useState<MenuStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiGet<UserStats>('/api/user/stats')
+    unwrap(api.GET('/api/user/stats'))
       .then(setStats)
       .catch(() => setStats({ name: 'Hunter', level: 1, rank: 'E', xp: 0, xp_needed: 100 }))
       .finally(() => setLoading(false));

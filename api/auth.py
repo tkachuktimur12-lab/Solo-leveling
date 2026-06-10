@@ -6,7 +6,7 @@ import sqlite3
 from fastapi import Depends, HTTPException, Request
 from telegram_init_data import parse, validate
 
-from game.db import get_user
+from game.db import get_user, set_user_name
 
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
@@ -26,8 +26,17 @@ def get_current_user(request: Request) -> sqlite3.Row:
 
     try:
         parsed = parse(raw)
-        user_id = parsed["user"]["id"]
+        tg_user = parsed["user"]
+        user_id = int(tg_user["id"])
     except Exception:
         raise HTTPException(status_code=401, detail="Cannot parse init data")
 
-    return get_user(int(user_id))
+    user = get_user(user_id)
+
+    # Keep the stored display name in sync with the Telegram profile.
+    display_name = tg_user.get("first_name") or tg_user.get("username") or "Hunter"
+    if user["name"] != display_name:
+        set_user_name(user_id, display_name)
+        user = get_user(user_id)
+
+    return user

@@ -1,39 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Card, Text, Button, Group, Loader, Center, Badge } from '@mantine/core';
-import { apiGet, apiPost } from '../api';
+import { api, unwrap } from '../api';
+import type { DungeonRollResult, HiddenRollResult, UserStats } from '../api/types';
 import { GAME_COLORS, RARITY_COLORS } from '../theme';
 
-interface UserRollInfo {
-  hidden_rolls: number;
-  dungeon_rolls: number;
-}
-
-interface HiddenRollResult {
-  found: boolean;
-  quest?: {
-    name: string;
-    rarity: string;
-    xp: number;
-    index?: number;
-  };
-}
-
-interface DungeonRollResult {
-  found: boolean;
-  dungeon?: {
-    rank: string;
-    name: string;
-  };
-}
-
-interface ClaimResult {
-  xp_gained: number;
-}
+type RollInfo = Pick<UserStats, 'hidden_rolls' | 'dungeon_rolls'>;
 
 export function RollPage() {
   const navigate = useNavigate();
-  const [info, setInfo] = useState<UserRollInfo | null>(null);
+  const [info, setInfo] = useState<RollInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [hiddenResult, setHiddenResult] = useState<HiddenRollResult | null>(null);
@@ -42,7 +18,7 @@ export function RollPage() {
 
   const fetchInfo = useCallback(async () => {
     try {
-      const data = await apiGet<UserRollInfo>('/api/user/stats');
+      const data = await unwrap(api.GET('/api/user/stats'));
       setInfo({ hidden_rolls: data.hidden_rolls, dungeon_rolls: data.dungeon_rolls });
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -55,7 +31,7 @@ export function RollPage() {
     setHiddenResult(null);
     setClaimMsg(null);
     try {
-      const res = await apiPost<HiddenRollResult>('/api/roll/hidden');
+      const res = await unwrap(api.POST('/api/roll/hidden'));
       setHiddenResult(res);
       fetchInfo();
     } catch (e) { console.error(e); }
@@ -65,7 +41,7 @@ export function RollPage() {
   const claimHidden = async (index: number) => {
     setActing(true);
     try {
-      const res = await apiPost<ClaimResult>(`/api/roll/hidden/claim/${index}`);
+      const res = await unwrap(api.POST('/api/roll/hidden/claim/{index}', { params: { path: { index } } }));
       setClaimMsg(`Claimed +${res.xp_gained} XP!`);
       setHiddenResult(null);
       fetchInfo();
@@ -77,7 +53,7 @@ export function RollPage() {
     setActing(true);
     setDungeonResult(null);
     try {
-      const res = await apiPost<DungeonRollResult>('/api/roll/dungeon');
+      const res = await unwrap(api.POST('/api/roll/dungeon'));
       setDungeonResult(res);
       fetchInfo();
     } catch (e) { console.error(e); }
@@ -187,12 +163,12 @@ export function RollPage() {
             background: 'rgba(79,195,247,0.08)',
             border: `1px solid ${dungeonResult.found ? GAME_COLORS.primary : GAME_COLORS.cardBorder}`,
           }}>
-            {dungeonResult.found && dungeonResult.dungeon ? (
+            {dungeonResult.found && dungeonResult.gate_rank ? (
               <>
                 <Text fw={600} ta="center">
-                  {dungeonResult.dungeon.rank}-Rank Dungeon appeared!
+                  {dungeonResult.gate_rank}-Rank Dungeon appeared!
                 </Text>
-                <Text ta="center" size="sm" c="dimmed">{dungeonResult.dungeon.name}</Text>
+                <Text ta="center" size="sm" c="dimmed">A new gate has opened — enter to challenge it!</Text>
                 <Button
                   fullWidth
                   mt="sm"

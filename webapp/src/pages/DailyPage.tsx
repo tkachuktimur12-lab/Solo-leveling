@@ -2,26 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Button, Text, Card, Loader, Center, Alert } from '@mantine/core';
 import { QuestItem } from '../components/QuestItem';
-import { apiGet, apiPost } from '../api';
+import { api, unwrap } from '../api';
+import type { ClaimResult, DailyState } from '../api/types';
 import { GAME_COLORS } from '../theme';
-
-// Backend returns quests as [name, xp] tuples
-type RawQuest = [string, number];
-
-interface DailyState {
-  active_quests: RawQuest[];
-  quest_progress: number;
-  cooldown_active: boolean;
-  cooldown_remaining: number; // seconds
-  streak: number;
-}
-
-interface ClaimResult {
-  xp_gained: number;
-  streak: number;
-  level: number;
-  level_ups: number;
-}
 
 export function DailyPage() {
   const navigate = useNavigate();
@@ -32,7 +15,7 @@ export function DailyPage() {
 
   const fetchDaily = useCallback(() => {
     setLoading(true);
-    apiGet<DailyState>('/api/daily')
+    unwrap(api.GET('/api/daily'))
       .then(setDaily)
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -43,7 +26,7 @@ export function DailyPage() {
   const startDaily = async () => {
     setActing(true);
     try {
-      await apiPost('/api/daily/start');
+      await unwrap(api.POST('/api/daily/start'));
       fetchDaily();
     } catch (e) { console.error(e); }
     finally { setActing(false); }
@@ -52,7 +35,7 @@ export function DailyPage() {
   const completeTask = async (index: number) => {
     setActing(true);
     try {
-      await apiPost(`/api/daily/task/${index}`);
+      await unwrap(api.POST('/api/daily/task/{index}', { params: { path: { index } } }));
       fetchDaily();
     } catch (e) { console.error(e); }
     finally { setActing(false); }
@@ -61,7 +44,7 @@ export function DailyPage() {
   const claimReward = async () => {
     setActing(true);
     try {
-      const result = await apiPost<ClaimResult>('/api/daily/claim');
+      const result = await unwrap(api.POST('/api/daily/claim'));
       setClaimResult(result);
       fetchDaily();
     } catch (e) { console.error(e); }
@@ -111,8 +94,8 @@ export function DailyPage() {
             return (
               <QuestItem
                 key={i}
-                name={quest[0]}
-                xp={quest[1]}
+                name={quest.name}
+                xp={quest.xp}
                 completed={completed}
                 disabled={!canDo || acting}
                 onComplete={() => completeTask(i)}

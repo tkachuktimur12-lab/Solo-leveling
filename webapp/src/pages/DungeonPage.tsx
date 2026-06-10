@@ -2,38 +2,9 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Button, Text, Card, Group, Badge } from '@mantine/core';
 import { QuestItem } from '../components/QuestItem';
-import { apiPost } from '../api';
+import { api, unwrap } from '../api';
+import type { BossDefeat, Enemy } from '../api/types';
 import { GAME_COLORS } from '../theme';
-
-// Backend enemy shape: { name, task }
-interface Enemy { name: string; task: string; }
-
-// POST /enter/{rank} response
-interface EnterResponse {
-  rank: string;
-  enemies: Enemy[];
-  time_limit: number;
-}
-
-// POST /task/{index} response
-interface TaskResponse {
-  dungeon_progress: number;
-  total_enemies: number;
-  boss_available: boolean;
-}
-
-// POST /boss response
-interface BossResponse {
-  boss: { name: string; task: string };
-  time_left: number;
-}
-
-// POST /boss/defeat response
-interface DefeatResponse {
-  xp_reward: number;
-  gold_reward: number;
-  loot?: { item_name: string; rarity: string } | null;
-}
 
 const RANK_OPTS = [
   { rank: 'E', color: '#9E9E9E', label: 'E-Rank' },
@@ -52,8 +23,8 @@ export function DungeonPage() {
   const [rank, setRank] = useState('');
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [progress, setProgress] = useState(0);
-  const [boss, setBoss] = useState<{ name: string; task: string } | null>(null);
-  const [rewards, setRewards] = useState<DefeatResponse | null>(null);
+  const [boss, setBoss] = useState<Enemy | null>(null);
+  const [rewards, setRewards] = useState<BossDefeat | null>(null);
 
   const startTimer = useCallback((seconds: number) => {
     setTimer(seconds);
@@ -74,7 +45,7 @@ export function DungeonPage() {
   const enterDungeon = async (r: string) => {
     setActing(true);
     try {
-      const data = await apiPost<EnterResponse>(`/api/dungeons/enter/${r}`);
+      const data = await unwrap(api.POST('/api/dungeons/enter/{rank}', { params: { path: { rank: r } } }));
       setRank(data.rank);
       setEnemies(data.enemies);
       setProgress(0);
@@ -89,11 +60,11 @@ export function DungeonPage() {
   const completeTask = async (index: number) => {
     setActing(true);
     try {
-      const data = await apiPost<TaskResponse>(`/api/dungeons/task/${index}`);
+      const data = await unwrap(api.POST('/api/dungeons/task/{index}', { params: { path: { index } } }));
       setProgress(data.dungeon_progress);
       if (data.boss_available) {
         // Auto-enter boss room
-        const bossData = await apiPost<BossResponse>('/api/dungeons/boss');
+        const bossData = await unwrap(api.POST('/api/dungeons/boss'));
         setBoss(bossData.boss);
         setPhase('boss');
         startTimer(bossData.time_left);
@@ -105,7 +76,7 @@ export function DungeonPage() {
   const defeatBoss = async () => {
     setActing(true);
     try {
-      const data = await apiPost<DefeatResponse>('/api/dungeons/boss/defeat');
+      const data = await unwrap(api.POST('/api/dungeons/boss/defeat'));
       setRewards(data);
       setPhase('victory');
       if (timerRef.current) clearInterval(timerRef.current);

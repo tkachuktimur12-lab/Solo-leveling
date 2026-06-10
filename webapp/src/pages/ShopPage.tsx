@@ -1,20 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Stack, Card, Text, Button, Group, Badge, Loader, Center, SimpleGrid } from '@mantine/core';
-import { apiGet, apiPost } from '../api';
+import { api, unwrap } from '../api';
+import type { BuyResult, ShopItem } from '../api/types';
 import { GAME_COLORS, RARITY_COLORS } from '../theme';
 
-interface ShopItem {
-  name: string;
-  price: number;
-  description?: string;
-}
-
-interface BuyResult {
-  item: string;
-  rarity: string;
-  stats?: Record<string, number>;
-}
+const STAT_LABELS: Record<string, string> = {
+  strength: 'STR',
+  intelligence: 'INT',
+  agility: 'AGI',
+  vitality: 'VIT',
+  sense: 'SENSE',
+};
 
 export function ShopPage() {
   const navigate = useNavigate();
@@ -26,12 +23,12 @@ export function ShopPage() {
 
   useEffect(() => {
     Promise.all([
-      apiGet<{ items: ShopItem[] }>('/api/shop'),
-      apiGet<{ gold: number }>('/api/user/stats'),
+      unwrap(api.GET('/api/shop')),
+      unwrap(api.GET('/api/user/stats')),
     ])
       .then(([shop, stats]) => {
-        setItems(shop.items ?? (Array.isArray(shop) ? shop as unknown as ShopItem[] : []));
-        setGold(stats.gold ?? 0);
+        setItems(shop.items);
+        setGold(stats.gold);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -41,10 +38,9 @@ export function ShopPage() {
     setBuying(name);
     setResult(null);
     try {
-      const res = await apiPost<BuyResult>(`/api/shop/buy/${encodeURIComponent(name)}`);
+      const res = await unwrap(api.POST('/api/shop/buy/{item_name}', { params: { path: { item_name: name } } }));
       setResult(res);
-      const stats = await apiGet<{ gold: number }>('/api/user/stats');
-      setGold(stats.gold ?? 0);
+      setGold(res.gold);
     } catch (e) { console.error(e); }
     finally { setBuying(null); }
   };
@@ -72,20 +68,21 @@ export function ShopPage() {
       {result && (
         <Card p="sm" style={{
           background: GAME_COLORS.cardBg,
-          border: `2px solid ${RARITY_COLORS[result.rarity?.toLowerCase() as keyof typeof RARITY_COLORS] ?? RARITY_COLORS.common}`,
+          border: `2px solid ${RARITY_COLORS[result.item.rarity?.toLowerCase() as keyof typeof RARITY_COLORS] ?? RARITY_COLORS.common}`,
           textAlign: 'center',
         }}>
           <Text fw={600}>Purchased!</Text>
-          <Text size="sm" style={{ color: RARITY_COLORS[result.rarity?.toLowerCase() as keyof typeof RARITY_COLORS] ?? '#fff' }}>
-            {result.item} ({result.rarity})
+          <Text size="sm" style={{ color: RARITY_COLORS[result.item.rarity?.toLowerCase() as keyof typeof RARITY_COLORS] ?? '#fff' }}>
+            {result.item.name} ({result.item.rarity})
           </Text>
-          {result.stats && Object.keys(result.stats).length > 0 && (
-            <Group justify="center" gap={8} mt={4}>
-              {Object.entries(result.stats).map(([k, v]) => v > 0 && (
-                <Text key={k} size="xs" c="dimmed">{k.toUpperCase()}: +{v}</Text>
-              ))}
-            </Group>
-          )}
+          <Group justify="center" gap={8} mt={4}>
+            {Object.entries(STAT_LABELS).map(([key, label]) => {
+              const value = result.item[key as keyof typeof result.item] as number;
+              return value > 0 ? (
+                <Text key={key} size="xs" c="dimmed">{label}: +{value}</Text>
+              ) : null;
+            })}
+          </Group>
         </Card>
       )}
 
@@ -95,7 +92,6 @@ export function ShopPage() {
             <Group justify="space-between" align="center">
               <div>
                 <Text size="sm" fw={600}>{item.name}</Text>
-                {item.description && <Text size="xs" c="dimmed">{item.description}</Text>}
               </div>
               <Group gap="xs">
                 <Badge variant="light" color="yellow" size="sm">
