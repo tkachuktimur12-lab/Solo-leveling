@@ -1,6 +1,6 @@
 # Solo Leveling
 
-Telegram Mini App (and bot) inspired by Solo Leveling progression systems — a fitness gamification RPG.
+Telegram Mini App inspired by Solo Leveling progression systems — a fitness gamification RPG.
 
 ## Features
 - **Daily Quests**: 5 random fitness exercises, earn XP and streaks
@@ -14,7 +14,6 @@ Telegram Mini App (and bot) inspired by Solo Leveling progression systems — a 
 - `game/` — shared game logic (constants, DB, calculations)
 - `api/` — FastAPI backend (REST API for the Mini App)
 - `webapp/` — React Mini App (Vite + TypeScript + Mantine UI)
-- `bot/` — original Telegram bot (kept for reference)
 
 ## Run the Mini App
 
@@ -54,14 +53,6 @@ npm run gen:api   # writes webapp/openapi.json, then src/api/schema.d.ts
 ```
 `gen:api` runs `scripts/export_openapi.py` (needs the backend deps importable — activate your virtualenv first) followed by `openapi-typescript`. The generated `webapp/openapi.json` and `webapp/src/api/schema.d.ts` are committed so contract changes show up in review.
 In the app, use the typed client in `webapp/src/api.ts` (`api.GET` / `api.POST` + `unwrap`) and the aliases in `webapp/src/api/types.ts` instead of hand-writing interfaces.
-
-## Run the Bot (legacy)
-```bash
-pip install -r requirements.txt
-cp .env.example .env
-# Set TELEGRAM_BOT_TOKEN=your_token_here
-python main.py
-```
 
 ## Tech Stack
 - **Backend**: Python, FastAPI, SQLite
